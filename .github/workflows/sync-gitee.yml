@@ -1,6 +1,6 @@
 name: Mirror GitHub to Gitee
 on:
-  workflow_dispatch:   # 支持手动触发
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -8,22 +8,25 @@ jobs:
   mirror:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout full repo (带全部历史、tag)
+      - name: Checkout full repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Configure SSH for Gitee
+      - name: Setup SSH & debug
         env:
           SSH_PRIVATE_KEY: ${{ secrets.GITEE_SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          # 关闭主机校验，避免known_hosts报错
-          echo -e "Host gitee.com\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null" > ~/.ssh/config
-
-      - name: Mirror push to Gitee
-        run: |
+          echo -e "Host gitee.com\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  Port 22" > ~/.ssh/config
+          # 调试命令，看SSH连通性
+          ssh -v git@gitee.com
           git remote add gitee git@gitee.com:Sam/rea.git
+          git remote -v
+          git show-ref
+
+      - name: Mirror push
+        run: |
           git push --mirror gitee

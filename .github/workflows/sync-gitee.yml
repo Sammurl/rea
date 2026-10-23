@@ -1,21 +1,17 @@
-name: Sync GitHub to Gitee
+name: Sync to Gitee
 on:
+  workflow_dispatch: # 手动触发
   push:
-    branches: [ main ] # 如果你的主分支叫 master，这里改成 master
-  workflow_dispatch: # 支持手动点按钮触发同步
+    branches: [ main ] # 推送main分支自动同步
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          mirror: true
-
-      - name: Mirror push to Gitee
+      - name: Sync to Gitee
         uses: wearerequired/git-mirror-action@v1
         with:
-          source-repo: ${{ github.repositoryUrl }}
-          destination-repo: https://oauth2:${{ secrets.GITEE_TOKEN }}@gitee.com/${{ secrets.GITEE_OWNER }}/${{ secrets.GITEE_REPO }}.git
+          source-repo: ${{ github.event.repository.clone_url }}
+          destination-repo: git@gitee.com:你的gitee用户名/你的仓库名.git
+          destination-ssh-key: ${{ secrets.GITEE_SSH_PRIVATE_KEY }}
+          destination-known-hosts: ${{ secrets.GITEE_KNOWN_HOSTS }}

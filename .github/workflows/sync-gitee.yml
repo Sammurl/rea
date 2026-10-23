@@ -1,18 +1,22 @@
-name: Mirror to Gitee
+name: Mirror GitHub to Gitee
 on:
-  workflow_dispatch:   # 支持手动点按钮触发（你截图里的方式）
+  workflow_dispatch: # 支持手动触发（你现在的模式）
   push:
-    branches: [ main ] # 往main推送代码自动同步
-  delete:              # 删除分支/tag也同步过去
+    branches: [ main ]
+  delete:
     branches: [ main ]
 
 jobs:
   mirror:
     runs-on: ubuntu-latest
     steps:
-      - name: Mirror repository to Gitee
-        uses: pixta-dev/repository-mirroring-action@v1
+      - name: Mirror to Gitee
+        uses: Yikun/hub-mirror-action@master
         with:
-          target_repo_url: git@gitee.com:Sam/rea.git
-          ssh_private_key: ${{ secrets.GITEE_SSH_PRIVATE_KEY }}
-          mirror: true
+          src: github/${{ github.repository }}
+          dst: gitee/Sam/rea
+          dst_key: ${{ secrets.GITEE_SSH_PRIVATE_KEY }}
+          dst_known_hosts: ${{ secrets.GITEE_KNOWN_HOSTS }}
+          static_branch: '^main'
+          # 开启完整镜像（同步所有分支、tag、删除也同步）
+          mirror_type: 'all'

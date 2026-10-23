@@ -1,4 +1,4 @@
-name: Mirror GitHub to Gitee
+name: Mirror GitHub to Gitee (HTTPS Token)
 on:
   workflow_dispatch:
   push:
@@ -8,25 +8,22 @@ jobs:
   mirror:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout full repo
+      - name: Checkout full repository (全部分支+tag)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup SSH & debug
+      - name: Mirror push to Gitee
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.GITEE_SSH_PRIVATE_KEY }}
+          GITEE_USER: Samurl
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          echo -e "Host gitee.com\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  Port 22" > ~/.ssh/config
-          # 调试命令，看SSH连通性
-          ssh -v git@gitee.com
-          git remote add gitee git@gitee.com:Sam/rea.git
-          git remote -v
-          git show-ref
-
-      - name: Mirror push
-        run: |
+          TARGET_REPO="rea"
+          TARGET_URL="https://${GITEE_USER}:${GITEE_TOKEN}@gitee.com/${GITEE_USER}/${TARGET_REPO}.git"
+          
+          git remote remove gitee || true
+          git remote add gitee "${TARGET_URL}"
+          echo "==== 目标地址 ===="
+          echo "${TARGET_URL}"
+          echo "==== 开始全量镜像 push --mirror ===="
           git push --mirror gitee
